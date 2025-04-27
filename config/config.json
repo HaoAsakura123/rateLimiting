@@ -1,0 +1,22 @@
+{
+    "backends": [
+        {
+            "id": "backend1",
+            "url": "http://localhost:8081",
+            "is_active": false,
+            "weight": 50
+        },
+        {
+            "id": "backend2",
+            "url": "http://localhost:8082",
+            "is_active": false,
+            "weight": 30
+        },
+        {
+            "id": "backend3",
+            "url": "http://localhost:8083",
+            "is_active": false,
+            "weight": 20
+        }
+    ]
+}
