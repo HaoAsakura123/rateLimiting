@@ -7,9 +7,8 @@ import (
 	"ratelimiting/internal/storage"
 )
 
-
-func StatusBackendsHandle(w http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodGet{
+func StatusBackendsHandle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		log.Println("INFO: uncorrect method")
 		http.Error(w, "INFO: uncorrect method", http.StatusMethodNotAllowed)
 	}
@@ -17,21 +16,19 @@ func StatusBackendsHandle(w http.ResponseWriter, r *http.Request){
 	url := r.URL.String()
 	backendId := url[len("/status/"):]
 	storage.BackendsLock.Lock()
-	if val, ok := storage.Backends[backendId]; !ok{
+	if val, ok := storage.Backends[backendId]; !ok {
 		log.Printf("backend: %s was not found\n", backendId)
 		http.Error(w, "Bad Request", http.StatusNotFound)
-	} else{
-		json.NewEncoder(w).Encode(val) 
+	} else {
+		json.NewEncoder(w).Encode(val)
 	}
 	storage.BackendsLock.Unlock()
 
 }
 
-
-
 // Обработчик добавления задачи
 func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost{
+	if r.Method != http.MethodPost {
 		log.Println("INFO: uncorrect method")
 		http.Error(w, "INFO: uncorrect method", http.StatusMethodNotAllowed)
 	}
@@ -51,24 +48,9 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	storage.Tasks = append(storage.Tasks, newTask)
 	storage.TasksLock.Unlock()
 
-
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]string{
 		"status":  "task accepted",
 		"task_id": taskID,
 	})
 }
-
-
-// func dbMiddleware(db *storage.DB) func(http.Handler) http.Handler {
-//     return func(next http.Handler) http.Handler {
-//         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//             // Создаем новый контекст с DB
-//             ctx := context.WithValue(r.Context(), "db", db)
-//             // Создаем новый запрос с обновленным контекстом
-//             r = r.WithContext(ctx)
-//             // Передаем управление следующему обработчику
-//             next.ServeHTTP(w, r)
-//         })
-//     }
-// }

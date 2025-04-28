@@ -13,9 +13,9 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	
+
 	if err != nil {
-	  log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 
 	db, err := storage.InitDB()
@@ -27,21 +27,22 @@ func main() {
 
 	PATH_TO_JSON := os.Getenv("PATH_TO_JSON")
 
-
 	// инициализация из конфига бэкенд серверов
 	servers, err := logic.LoadConfig(PATH_TO_JSON)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
-	for _, elem := range servers.Backends{
+	for _, elem := range servers.Backends {
 		storage.BackendsLock.Lock()
 		storage.Backends[elem.ID] = storage.Backend{
-			ID: elem.ID,
-			URL: elem.URL,
-			IsActive: elem.IsActive,
-			Weight: elem.Weight,
-		}	
+			ID:           elem.ID,
+			URL:          elem.URL,
+			IsActive:     elem.IsActive,
+			Weight:       elem.Weight,
+			IsAvailiable: true,
+		}
 		storage.BackendsLock.Unlock()
+		storage.NumBack += 1
 	}
 	mux := http.NewServeMux()
 	//Посмотреть информацию о конкретном backend сервере
@@ -49,11 +50,10 @@ func main() {
 	//Добавить новую задачу
 	mux.HandleFunc("/newTask/", handler.AddTaskHandler)
 
-	
-	go logic.TaskGetter()// генерирует новые задичи раз в минуту
-	go logic.ServeTask(db)// в горутине распределяет очередь задач по свободным бекэндам
-
-
+	go logic.TaskGetter()      // генерирует новые задичи раз в минуту
+	go logic.ServeTask(db)     // в горутине распределяет очередь задач по свободным бекэндам
+	go logic.BackendCrush()    // имитирует ломания сервака
+	go logic.BackendRecovery() // имитирует процесс восстановления
 	log.Println("INFO: server started at port :8080")
 	http.ListenAndServe(":8080", mux)
 }
