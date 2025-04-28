@@ -11,6 +11,7 @@ import (
 func StatusBackendsHandle(w http.ResponseWriter, r *http.Request){
 	if r.Method != http.MethodGet{
 		log.Println("INFO: uncorrect method")
+		http.Error(w, "INFO: uncorrect method", http.StatusMethodNotAllowed)
 	}
 
 	url := r.URL.String()
@@ -30,6 +31,10 @@ func StatusBackendsHandle(w http.ResponseWriter, r *http.Request){
 
 // Обработчик добавления задачи
 func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost{
+		log.Println("INFO: uncorrect method")
+		http.Error(w, "INFO: uncorrect method", http.StatusMethodNotAllowed)
+	}
 	taskID := r.URL.Path[len("/addTask/"):]
 	if taskID == "" {
 		http.Error(w, "Task ID is required", http.StatusBadRequest)
@@ -55,3 +60,15 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+// func dbMiddleware(db *storage.DB) func(http.Handler) http.Handler {
+//     return func(next http.Handler) http.Handler {
+//         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//             // Создаем новый контекст с DB
+//             ctx := context.WithValue(r.Context(), "db", db)
+//             // Создаем новый запрос с обновленным контекстом
+//             r = r.WithContext(ctx)
+//             // Передаем управление следующему обработчику
+//             next.ServeHTTP(w, r)
+//         })
+//     }
+// }

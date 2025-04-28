@@ -13,9 +13,18 @@ import (
 
 func main() {
 	err := godotenv.Load()
+	
 	if err != nil {
 	  log.Fatal("Error loading .env file")
 	}
+
+	db, err := storage.InitDB()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	defer db.Close()
+
 	PATH_TO_JSON := os.Getenv("PATH_TO_JSON")
 
 
@@ -34,16 +43,17 @@ func main() {
 		}	
 		storage.BackendsLock.Unlock()
 	}
+	mux := http.NewServeMux()
 	//Посмотреть информацию о конкретном backend сервере
-	http.HandleFunc("/status/", handler.StatusBackendsHandle)
+	mux.HandleFunc("/status/", handler.StatusBackendsHandle)
 	//Добавить новую задачу
-	http.HandleFunc("/newTask/", handler.AddTaskHandler)
+	mux.HandleFunc("/newTask/", handler.AddTaskHandler)
 
-
+	
 	go logic.TaskGetter()// генерирует новые задичи раз в минуту
-	go logic.ServeTask()// в горутине распределяет очередь задач по свободным бекэндам
+	go logic.ServeTask(db)// в горутине распределяет очередь задач по свободным бекэндам
 
 
 	log.Println("INFO: server started at port :8080")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }
