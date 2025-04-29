@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: ${USER_DB}
+      POSTGRES_PASSWORD: ${PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432" 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+    container_name: myapp
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - ./config:/app/config
+      - ./wait-for-it.sh:/wait-for-it.sh 
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - PATH_TO_JSON=${PATH_TO_JSON}
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - USER_DB=${USER_DB}
+      - DB_NAME=${DB_NAME}
+      - PASSWORD=${PASSWORD}
+      - APP_ENV=docker
+    entrypoint: ["sh", "-c", "/wait-for-it.sh db 5432 && ./main"]
+volumes:
+  postgres_data:

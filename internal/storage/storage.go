@@ -64,7 +64,14 @@ func InitDB() (*DB, error) {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	host := os.Getenv("HOST")
+	env := os.Getenv("APP_ENV")
+
+	var host string
+	if env == "docker" {
+		host = os.Getenv("HOST")
+	} else {
+		host = "localhost"
+	}
 	port := os.Getenv("PORT")
 	user := os.Getenv("USER_DB")
 	password := os.Getenv("PASSWORD")
